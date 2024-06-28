@@ -1,118 +1,80 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import React, { useState } from 'react';
+import { View, TextInput, StyleSheet } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import Toast, { ToastRef } from 'react-native-toast-message';
+import ProductList from './src/components/ProductList';
+import { products } from './src/components/MockProducts';
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+const Stack = createStackNavigator();
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+const App = () => {
+    const [cartItems, setCartItems] = useState<Array<string>>([]);
+    const [searchText, setSearchText] = useState<string>('');
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
+    const addToCart = (product:any) => {
+        console.log("product", product)
+        setCartItems([...cartItems, product]);
+        Toast.show({
+            type: 'success',
+            text1: 'Success',
+            text2: `${product.name} added to cart`
+        });
+    };
 
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
+    const handleSearchTextChange = (text:string) => {
+      setSearchText(text);
+      console.log("search",text);
+    };
+      // Logic for filtering products based on searchText
+    
+      const filterProducts = () => {
+        return products.filter(product => {
+            const name = (product.name || '').toUpperCase(); // Default to empty string if name is undefined
+            const category = (product.category || '').toUpperCase(); // Default to empty string if category is undefined
+            
+            
+            return name.includes(searchText?.toUpperCase()) || category.includes(searchText?.toUpperCase());
+        });
+    };
+      
 
-function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
-
-  return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
-}
+    return (
+        <NavigationContainer>
+            <Stack.Navigator initialRouteName="ProductList">
+                <Stack.Screen name="ProductList" options={{ title: 'Product Viewer' }}>
+                    {(props) => (
+                        <View style={styles.container}>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Search by name or category"
+                                onChangeText={text => handleSearchTextChange(text)}
+                                value={searchText}
+                            />
+                            <ProductList products={filterProducts()} addToCart={addToCart} />
+                        </View>
+                    )}
+                </Stack.Screen>
+            </Stack.Navigator>
+            <Toast/>
+        </NavigationContainer>
+    );
+};
 
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
+    container: {
+        flex: 1,
+        backgroundColor: '#f0f0f0',
+        padding: 10
+    },
+    input: {
+        backgroundColor: '#fff',
+        paddingVertical: 10,
+        paddingHorizontal: 15,
+        marginBottom: 10,
+        borderRadius: 10
+    }
 });
 
 export default App;
